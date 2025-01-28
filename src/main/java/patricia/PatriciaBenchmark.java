@@ -2,27 +2,15 @@ package patricia;
 
 import org.apache.commons.collections4.set.PatriciaTrieSet;
 import org.apache.commons.collections4.trie.PatriciaTrie;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import java.util.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -37,31 +25,47 @@ public class PatriciaBenchmark {
     PatriciaTrie<Object> patriciaTrie = new PatriciaTrie<>();
     PatriciaTrieSet patriciaTrieSet = new PatriciaTrieSet();
 
-    int size = 1000;
+    @Param({"1000", "10000", "100000"})
+    int size;
+
+
+    String keyA;
+    String keyAc;
+    String keyAcc;
+    String keyAcaa;
+    String keyAcca;
+
+    Object instanceForPatriciaTrie;
 
     @Setup(Level.Trial)
     public void setup() {
+        keyA = "A";
+        keyAc = "AC";
+        keyAcc = "ACC";
+        keyAcaa = "ACAA";
+        keyAcca = "ACCA";
+
         patriciaTrie.clear();
         patriciaTrieSet.clear();
 
-        Object cnt = new Object();
+        instanceForPatriciaTrie = new Object();
 
-        patriciaTrie.put("A", cnt);
-        patriciaTrie.put("AC", cnt);
-        patriciaTrieSet.add("A");
-        patriciaTrieSet.add("AC");
+        patriciaTrie.put(keyA, instanceForPatriciaTrie);
+        patriciaTrie.put(keyAc, instanceForPatriciaTrie);
+        patriciaTrieSet.add(keyA);
+        patriciaTrieSet.add(keyAc);
 
         String saltChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         Queue<String> queue = new ArrayDeque<>(size / saltChars.length());
-        queue.add("AC");
+        queue.add(keyAc);
 
         int j = 0;
-        while (j < size) {
+        while (j < size - 2) {
             String value = queue.poll();
             for (int i = 0; i < saltChars.length() && j < size; i++) {
                 String newValue = value + saltChars.charAt(i);
                 patriciaTrieSet.add(newValue);
-                patriciaTrie.put(newValue, "A");
+                patriciaTrie.put(newValue, instanceForPatriciaTrie);
                 queue.add(newValue);
                 j++;
             }
@@ -71,66 +75,66 @@ public class PatriciaBenchmark {
 
     @Benchmark
     public SortedMap<String, Object> subMapPatriciaTrie() {
-        return patriciaTrie.subMap("A", "ACC");
+        return patriciaTrie.subMap(keyA, keyAcc);
     }
 
     @Benchmark
     public SortedSet<String> subSetPatriciaTrieSet() {
-        return patriciaTrieSet.subSet("A", "ACC");
+        return patriciaTrieSet.subSet(keyA, keyAcc);
     }
 
     @Benchmark
     public boolean subMapPatriciaTrieContains() {
-        SortedMap<String, Object> map = patriciaTrie.subMap("A", "ACC");
-        return map.containsKey("AC");
+        SortedMap<String, Object> map = patriciaTrie.subMap(keyA, keyAcc);
+        return map.containsKey(keyAc);
     }
 
     @Benchmark
     public boolean subMapPatriciaTrieSetContains() {
-        SortedSet<String> subSet = patriciaTrieSet.subSet("A", "ACC");
-        return subSet.contains("AC");
+        SortedSet<String> subSet = patriciaTrieSet.subSet(keyA, keyAcc);
+        return subSet.contains(keyAc);
     }
 
     @Benchmark
     public Object subMapPatriciaTrieSetPut() {
-        SortedMap<String, Object> map = patriciaTrie.subMap("A", "ACC");
-        return map.put("ACAA","A");
+        SortedMap<String, Object> map = patriciaTrie.subMap(keyA, keyAcc);
+        return map.put(keyAcc, instanceForPatriciaTrie);
     }
 
     @Benchmark
     public boolean subSetPatriciaTrieSetAdd() {
-        SortedSet<String> set = patriciaTrieSet.subSet("A", "ACC");
-        return set.add("ACAA");
+        SortedSet<String> set = patriciaTrieSet.subSet(keyA, keyAcc);
+        return set.add(keyAcc);
     }
 
     @Benchmark
     public SortedMap<String, Object> prefixMapPatriciaTrie() {
-        return patriciaTrie.prefixMap("ACC");
+        return patriciaTrie.prefixMap(keyAcc);
     }
 
     @Benchmark
     public SortedSet<String> prefixSetPatriciaTrieSet() {
-        return patriciaTrieSet.prefixSet("ACC");
+        return patriciaTrieSet.prefixSet(keyAcc);
     }
 
     @Benchmark
     public SortedMap<String, Object> headMapPatriciaTrie() {
-        return patriciaTrie.headMap("ACC");
+        return patriciaTrie.headMap(keyAcc);
     }
 
     @Benchmark
     public SortedSet<String> headSetPatriciaTrieSet() {
-        return patriciaTrieSet.headSet("ACC");
+        return patriciaTrieSet.headSet(keyAcc);
     }
 
     @Benchmark
     public SortedMap<String, Object> tailMapPatriciaTrie() {
-        return patriciaTrie.tailMap("ACC");
+        return patriciaTrie.tailMap(keyAcc);
     }
 
     @Benchmark
     public SortedSet<String> tailSetPatriciaTrieSet() {
-        return patriciaTrieSet.tailSet("ACC");
+        return patriciaTrieSet.tailSet(keyAcc);
     }
 
     @Benchmark
@@ -153,41 +157,65 @@ public class PatriciaBenchmark {
         return patriciaTrieSet.last();
     }
 
+    @Benchmark
+    public int sizePatriciaTrie() {
+        return patriciaTrie.size();
+    }
+
+    @Benchmark
+    public int sizePatriciaTrieSet() {
+        return patriciaTrieSet.size();
+    }
+
+    @Benchmark
+    public boolean isEmptyPatriciaTrie() {
+        return patriciaTrie.isEmpty();
+    }
+
+    @Benchmark
+    public boolean isEmptyPatriciaTrieSet() {
+        return patriciaTrieSet.isEmpty();
+    }
+
+    @Benchmark
+    public boolean containsPatriciaTrie() {
+        return patriciaTrie.containsKey(keyAcca);
+    }
+
+    @Benchmark
+    public boolean containsPatriciaTrieSet() {
+        return patriciaTrieSet.contains(keyAcca);
+    }
+
+    @Benchmark
+    public void iteratorPatriciaTrie(Blackhole bh) {
+        for (String s : patriciaTrie.keySet()) {
+            bh.consume(s);
+        }
+    }
+
+    @Benchmark
+    public void iteratorPatriciaTrieSet(Blackhole bh) {
+        for (String s : patriciaTrieSet) {
+            bh.consume(s);
+        }
+    }
+
+    @Benchmark
+    public void iteratorSubSetPatriciaTrie(Blackhole bh) {
+        for (String s : patriciaTrie.subMap(keyA, keyAcc).keySet()) {
+            bh.consume(s);
+        }
+    }
+
+    @Benchmark
+    public void iteratorSubSetPatriciaTrieSet(Blackhole bh) {
+        for (String s : patriciaTrieSet.subSet(keyA, keyAcc)) {
+            bh.consume(s);
+        }
+    }
 
     public static void main(String[] args) throws RunnerException {
-     /*   PatriciaTrieSet set = new PatriciaTrieSet();
-        PatriciaTrie<Object> patriciaTrie = new PatriciaTrie<>();
-        set.add("A");
-        set.add("AC");
-
-        patriciaTrie.put("A", "A");
-        patriciaTrie.put("AC", "A");
-
-
-        String saltChars = "ABC";
-        Queue<String> queue = new ArrayDeque<>(1000 / saltChars.length());
-        queue.add("AC");
-
-        int j = 0;
-        while (j < 1000) {
-            String value = queue.poll();
-            for (int i = 0; i < saltChars.length() && j < 1000; i++) {
-                String newValue = value + saltChars.charAt(i);
-                set.add(newValue);
-                patriciaTrie.put(newValue, "A");
-                queue.add(newValue);
-                j++;
-            }
-        }
-
-        SortedSet<String> s = set.subSet("A", "ACC");
-        s.contains("AC");
-        s.reversed();
-
-        patriciaTrie.subMap("A", "ACC").put("A", "B");
-        patriciaTrie.containsKey("AC");*/
-
-
         Options opt = new OptionsBuilder()
                 .include(PatriciaBenchmark.class.getSimpleName())
                 .forks(1)
