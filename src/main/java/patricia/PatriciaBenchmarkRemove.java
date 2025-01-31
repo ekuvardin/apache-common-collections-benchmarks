@@ -14,58 +14,43 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 /*
-Benchmark                                      (size)  Mode  Cnt   Score   Error  Units
-PatriciaBenchmarkRemove.removePatriciaTrie       1000  avgt    5  20,971 � 0,255  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrie      10000  avgt    5  20,980 � 0,248  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrie     100000  avgt    5  22,997 � 0,655  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrieSet    1000  avgt    5  21,295 � 0,266  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrieSet   10000  avgt    5  21,595 � 0,158  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrieSet  100000  avgt    5  23,114 � 0,473  ns/op
-
-Don't INLINE
-Benchmark                                      (size)  Mode  Cnt   Score   Error  Units
-PatriciaBenchmarkRemove.removePatriciaTrie       1000  avgt    5  24,099 � 0,285  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrie      10000  avgt    5  23,887 � 0,207  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrie     100000  avgt    5  26,691 � 0,862  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrieSet    1000  avgt    5  25,114 � 0,214  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrieSet   10000  avgt    5  24,364 � 0,417  ns/op
-PatriciaBenchmarkRemove.removePatriciaTrieSet  100000  avgt    5  26,751 � 0,905  ns/op
+Benchmark                                      (sizeFill)  (sizeTryToRemove)  Mode  Cnt    Score   Error  Units
+PatriciaBenchmarkRemove.removePatriciaTrie         100000             100000  avgt    5  133,199 ? 0,989  ns/op
+PatriciaBenchmarkRemove.removePatriciaTrieSet      100000             100000  avgt    5  134,057 ? 0,960  ns/op
  */
 @State(Scope.Benchmark)
 @Fork(value = 1)
-@Warmup(iterations = 7)
-@Measurement(iterations = 5)
+@Warmup(iterations = 10, time = 5)
+@Measurement(iterations = 5, time = 5)
 @BenchmarkMode(Mode.AverageTime)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class PatriciaBenchmarkRemove {
 
     PatriciaTrie<Object> patriciaTrie = new PatriciaTrie<>();
     PatriciaTrieSet patriciaTrieSet = new PatriciaTrieSet();
-    static String[] array;
+    String[] array;
 
-    @Param({"1000","10000","100000"})
-    int size;
+    @Param({"100000"})
+    int sizeFill;
+
+    @Param({"100000"})
+    int sizeTryToRemove;
 
     String keyA;
     String keyAc;
-    String keyAcc;
-    String keyAcaa;
-    String keyAcca;
-    Object cnt;
+    // Final object is correct for simplicity we want to inline this object in methods
+    final Object cnt = new Object();
+    int idx;
 
     @Setup(Level.Trial)
     public void setupTrial() {
         keyA = "A";
         keyAc = "AC";
-        keyAcc = "ACC";
-        keyAcaa = "ACAA";
-        keyAcca = "ACCA";
 
         patriciaTrie.clear();
         patriciaTrieSet.clear();
 
-        array = new String[size - 2];
-        cnt = new Object();
+        array = new String[sizeTryToRemove];
 
         patriciaTrie.put(keyA, cnt);
         patriciaTrie.put(keyAc, cnt);
@@ -73,14 +58,14 @@ public class PatriciaBenchmarkRemove {
         patriciaTrieSet.add(keyAc);
 
         String saltChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Queue<String> queue = new ArrayDeque<>(size / saltChars.length());
+        Queue<String> queue = new ArrayDeque<>(sizeFill / saltChars.length());
 
         queue.add(keyAc);
 
-        int j = 0;
-        while (j < size - 2) {
+        int j = 2;
+        while (j < sizeFill) {
             String value = queue.poll();
-            for (int i = 0; i < saltChars.length() && j < size - 2; i++) {
+            for (int i = 0; i < saltChars.length() && j < sizeFill; i++) {
                 String newValue = value + saltChars.charAt(i);
                 patriciaTrieSet.add(newValue);
                 patriciaTrie.put(newValue, cnt);
@@ -89,27 +74,20 @@ public class PatriciaBenchmarkRemove {
                 j++;
             }
         }
-    }
 
-    @State(Scope.Benchmark)
-    public static class NextToIterate {
-        String[] values;
+        queue.clear();
+        queue.add("DE");
 
-        int idx;
-
-        public NextToIterate() {
-            values = array;
-            idx = 0;
-        }
-
-        @CompilerControl(CompilerControl.Mode.DONT_INLINE)
-        public int getNextIdx() {
-            return (idx++) % values.length;
-        }
-
-        @CompilerControl(CompilerControl.Mode.DONT_INLINE)
-        public String getNextValue() {
-            return values[getNextIdx()];
+        j = 0;
+        while (j < sizeTryToRemove) {
+            String value = queue.poll();
+            for (int i = 0; i < saltChars.length() && j < sizeTryToRemove; i++) {
+                String newValue = value + saltChars.charAt(i);
+                queue.add(newValue);
+                patriciaTrie.put(newValue, cnt);
+                array[j] = newValue;
+                j++;
+            }
         }
     }
 
@@ -122,13 +100,13 @@ public class PatriciaBenchmarkRemove {
     }
 
     @Benchmark
-    public Object removePatriciaTrie(NextToIterate nextToIterate) {
-        return patriciaTrie.remove(nextToIterate.getNextValue());
+    public Object removePatriciaTrie() {
+        return patriciaTrie.remove(array[(idx++) % sizeTryToRemove]);
     }
 
     @Benchmark
-    public boolean removePatriciaTrieSet(NextToIterate nextToIterate) {
-        return patriciaTrieSet.remove(nextToIterate.getNextValue());
+    public boolean removePatriciaTrieSet() {
+        return patriciaTrieSet.remove(array[(idx++) % sizeTryToRemove]);
     }
 
     public static void main(String[] args) throws RunnerException {
@@ -136,7 +114,7 @@ public class PatriciaBenchmarkRemove {
                 .include(PatriciaBenchmarkRemove.class.getSimpleName())
                 .forks(1)
                 .warmupTime(TimeValue.seconds(2))
-                .measurementTime(TimeValue.seconds(2))
+                .measurementTime(TimeValue.seconds(5))
                 .measurementIterations(5)
                 .warmupIterations(7)
                 .mode(Mode.AverageTime)

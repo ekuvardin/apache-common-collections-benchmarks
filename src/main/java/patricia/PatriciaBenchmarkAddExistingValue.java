@@ -13,8 +13,13 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
+/*
+Benchmark                                             (sizeFill)  Mode  Cnt    Score   Error  Units
+PatriciaBenchmarkAddExistingValue.addPatriciaTrie          10000  avgt    5  108,823 ? 2,308  ns/op
+PatriciaBenchmarkAddExistingValue.addPatriciaTrieSet       10000  avgt    5  139,719 ? 2,609  ns/op
+ */
 @State(Scope.Benchmark)
-@Fork(value = 1)
+@Fork(value = 2)
 @Warmup(iterations = 7, time = 2)
 @Measurement(iterations = 5, time = 2)
 @BenchmarkMode(Mode.AverageTime)
@@ -25,16 +30,29 @@ public class PatriciaBenchmarkAddExistingValue {
     PatriciaTrieSet patriciaTrieSet = new PatriciaTrieSet();
     String[] array;
 
+    /* Initial PatriciaTrie and PatriciaTrieSet size
+        It starts with values
+        A
+        AC
+        ACA
+        ACB
+        ACC
+        ....
+        ACAA
+        ACAB
+        Until reaches sizeFill elements
+    */
     @Param({"10000"})
     int sizeFill;
 
-    @Param({"10000"})
-    int sizeTryToAdd;
-
+    // Move constant at benchmark level to prevent constant folding
     String keyA;
     String keyAc;
+
+    // Final object is correct for simplicity we want to inline this object in methods
     final Object cnt = new Object();
 
+    // Counter for tests
     int idx;
 
     @Setup(Level.Trial)
@@ -45,7 +63,7 @@ public class PatriciaBenchmarkAddExistingValue {
         patriciaTrie.clear();
         patriciaTrieSet.clear();
 
-        array = new String[sizeTryToAdd];
+        array = new String[sizeFill];
 
         patriciaTrie.put(keyA, cnt);
         patriciaTrie.put(keyAc, cnt);
@@ -79,12 +97,12 @@ public class PatriciaBenchmarkAddExistingValue {
 
     @Benchmark
     public Object addPatriciaTrie() {
-        return patriciaTrie.put(array[(idx++) % sizeTryToAdd], cnt);
+        return patriciaTrie.put(array[(idx++) % sizeFill], cnt);
     }
 
     @Benchmark
     public boolean addPatriciaTrieSet() {
-       return patriciaTrieSet.add(array[(idx++) % sizeTryToAdd]);
+        return patriciaTrieSet.add(array[(idx++) % sizeFill]);
     }
 
     public static void main(String[] args) throws RunnerException {

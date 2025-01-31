@@ -10,16 +10,20 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
 import java.util.ArrayDeque;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
+/*
+Benchmark                                        (sizeFill)  (sizeTryToAdd)  Mode  Cnt    Score   Error  Units
+PatriciaBenchmarkAddNewValue.addPatriciaTrie          10000          100000  avgt    5  158,198 ? 1,014  ns/op
+PatriciaBenchmarkAddNewValue.addPatriciaTrieSet       10000          100000  avgt    5  175,539 ? 3,196  ns/op
+ */
 @State(Scope.Benchmark)
 @Fork(value = 1)
-@Warmup(iterations = 7)
-@Measurement(iterations = 5)
+@Warmup(iterations = 7, time = 2)
+@Measurement(iterations = 5, time = 2)
 @BenchmarkMode(Mode.AverageTime)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class PatriciaBenchmarkAddNewValue {
 
     PatriciaTrie<Object> patriciaTrie = new PatriciaTrie<>();
@@ -34,6 +38,8 @@ public class PatriciaBenchmarkAddNewValue {
 
     String keyA;
     String keyAc;
+
+    // Final object is correct for simplicity we want to inline this object in methods
     final Object cnt = new Object();
 
     int idx;
@@ -91,8 +97,10 @@ public class PatriciaBenchmarkAddNewValue {
 
     @Setup(Level.Iteration)
     public void setupIteration() {
-        List.of(array).forEach(patriciaTrieSet::remove);
-        for (String s : array) patriciaTrie.remove(s);
+        for (String s : array) {
+            patriciaTrie.remove(s);
+            patriciaTrieSet.remove(s);
+        }
 
         idx = 0;
     }
