@@ -229,6 +229,4 @@ public class PatriciaBenchmark {
 
         new Runner(opt).run();
     }
-
 }
-

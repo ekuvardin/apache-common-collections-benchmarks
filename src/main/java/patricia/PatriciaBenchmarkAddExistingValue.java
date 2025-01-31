@@ -10,48 +10,42 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
 import java.util.ArrayDeque;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @Fork(value = 1)
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
+@Warmup(iterations = 7, time = 2)
+@Measurement(iterations = 5, time = 2)
 @BenchmarkMode(Mode.AverageTime)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class PatriciaBenchmarkAdd {
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+public class PatriciaBenchmarkAddExistingValue {
 
     PatriciaTrie<Object> patriciaTrie = new PatriciaTrie<>();
     PatriciaTrieSet patriciaTrieSet = new PatriciaTrieSet();
-    static String[] array;
+    String[] array;
 
-    @Param({"1000"})
+    @Param({"10000"})
     int sizeFill;
 
-    @Param({"1000"})
+    @Param({"10000"})
     int sizeTryToAdd;
 
     String keyA;
     String keyAc;
-    String keyAcc;
-    String keyAcaa;
-    String keyAcca;
-    Object cnt;
+    final Object cnt = new Object();
+
+    int idx;
 
     @Setup(Level.Trial)
     public void setupTrial() {
         keyA = "A";
         keyAc = "AC";
-        keyAcc = "ACC";
-        keyAcaa = "ACAA";
-        keyAcca = "ACCA";
 
         patriciaTrie.clear();
         patriciaTrieSet.clear();
 
         array = new String[sizeTryToAdd];
-        cnt = new Object();
 
         patriciaTrie.put(keyA, cnt);
         patriciaTrie.put(keyAc, cnt);
@@ -62,27 +56,15 @@ public class PatriciaBenchmarkAdd {
         Queue<String> queue = new ArrayDeque<>(sizeFill / saltChars.length());
 
         queue.add(keyAc);
-
-        int j = 0;
-        while (j < sizeFill - 2) {
+        array[0] = keyAc;
+        array[1] = keyA;
+        int j = 2;
+        while (j < sizeFill) {
             String value = queue.poll();
-            for (int i = 0; i < saltChars.length() && j < sizeFill - 2; i++) {
+            for (int i = 0; i < saltChars.length() && j < sizeFill; i++) {
                 String newValue = value + saltChars.charAt(i);
                 patriciaTrieSet.add(newValue);
                 patriciaTrie.put(newValue, cnt);
-                queue.add(newValue);
-                j++;
-            }
-        }
-
-        queue.clear();
-        queue.add("DE");
-
-        j = 0;
-        while (j < sizeTryToAdd) {
-            String value = queue.poll();
-            for (int i = 0; i < saltChars.length() && j < sizeTryToAdd; i++) {
-                String newValue = value + saltChars.charAt(i);
                 queue.add(newValue);
                 array[j] = newValue;
                 j++;
@@ -92,44 +74,22 @@ public class PatriciaBenchmarkAdd {
 
     @Setup(Level.Iteration)
     public void setupIteration() {
-        List.of(array).forEach(patriciaTrieSet::remove);
-        List.of(array).forEach(patriciaTrie::remove);
-    }
-
-    @State(Scope.Benchmark)
-    public static class NextToIterate {
-        String[] values;
-
-        int idx;
-
-        public NextToIterate() {
-            values = array;
-            idx = 0;
-        }
-
-        public int getNextIdx() {
-            return (idx++) % values.length;
-        }
-
-        public String getNextValue() {
-            return values[getNextIdx()];
-        }
-    }
-
-
-    @Benchmark
-    public Object addPatriciaTrie(NextToIterate nextToIterate) {
-        return patriciaTrie.put(nextToIterate.getNextValue(), cnt);
+        idx = 0;
     }
 
     @Benchmark
-    public boolean addPatriciaTrieSet(NextToIterate nextToIterate) {
-        return patriciaTrieSet.add(nextToIterate.getNextValue());
+    public Object addPatriciaTrie() {
+        return patriciaTrie.put(array[(idx++) % sizeTryToAdd], cnt);
+    }
+
+    @Benchmark
+    public boolean addPatriciaTrieSet() {
+       return patriciaTrieSet.add(array[(idx++) % sizeTryToAdd]);
     }
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
-                .include(PatriciaBenchmarkAdd.class.getSimpleName())
+                .include(PatriciaBenchmarkAddExistingValue.class.getSimpleName())
                 .forks(1)
                 .warmupTime(TimeValue.seconds(2))
                 .measurementTime(TimeValue.seconds(2))
@@ -141,6 +101,4 @@ public class PatriciaBenchmarkAdd {
 
         new Runner(opt).run();
     }
-
 }
-
