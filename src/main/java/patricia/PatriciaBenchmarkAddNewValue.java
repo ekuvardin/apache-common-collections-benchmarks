@@ -14,9 +14,9 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 /*
-Benchmark                                        (sizeFill)  (sizeTryToAdd)  Mode  Cnt    Score   Error  Units
-PatriciaBenchmarkAddNewValue.addPatriciaTrie          10000          100000  avgt    5  158,198 ? 1,014  ns/op
-PatriciaBenchmarkAddNewValue.addPatriciaTrieSet       10000          100000  avgt    5  175,539 ? 3,196  ns/op
+    Benchmark                                        (sizeFill)  (sizeTryToAdd)  Mode  Cnt    Score   Error  Units
+    PatriciaBenchmarkAddNewValue.addPatriciaTrie          10000          100000  avgt    5  158,198 ? 1,014  ns/op
+    PatriciaBenchmarkAddNewValue.addPatriciaTrieSet       10000          100000  avgt    5  175,539 ? 3,196  ns/op
  */
 @State(Scope.Benchmark)
 @Fork(value = 1)
@@ -30,11 +30,36 @@ public class PatriciaBenchmarkAddNewValue {
     PatriciaTrieSet patriciaTrieSet = new PatriciaTrieSet();
     String[] array;
 
+    /*
+     Initial PatriciaTrie and PatriciaTrieSet size
+     It starts with values
+     A
+     AC
+     ACA
+     ACB
+     ACC
+     ....
+     ACAA
+     ACAB
+     Until reaches sizeFill elements
+    */
     @Param({"10000"})
     int sizeFill;
 
+    /* Then fill elements before each iteration with values
+        It starts with values
+        DE
+        DEA
+        DEB
+        DEC
+        ....
+        DEAA
+        DEAB
+        Until reaches sizeTryToAdd elements
+    */
     @Param({"100000"})
     int sizeTryToAdd;
+
 
     String keyA;
     String keyAc;
@@ -116,17 +141,7 @@ public class PatriciaBenchmarkAddNewValue {
     }
 
     public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(PatriciaBenchmarkAddNewValue.class.getSimpleName())
-                .forks(1)
-                .warmupTime(TimeValue.seconds(2))
-                .measurementTime(TimeValue.seconds(2))
-                .measurementIterations(5)
-                .warmupIterations(7)
-                .mode(Mode.AverageTime)
-                .timeUnit(TimeUnit.NANOSECONDS)
-                .jvmArgs("-server")
-                .build();
+        Options opt = new OptionsBuilder().include(PatriciaBenchmarkAddNewValue.class.getSimpleName()).forks(1).warmupTime(TimeValue.seconds(2)).measurementTime(TimeValue.seconds(2)).measurementIterations(5).warmupIterations(7).mode(Mode.AverageTime).timeUnit(TimeUnit.NANOSECONDS).jvmArgs("-server").build();
 
         new Runner(opt).run();
     }

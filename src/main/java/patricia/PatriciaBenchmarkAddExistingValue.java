@@ -14,14 +14,14 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 /*
-Benchmark                                             (sizeFill)  Mode  Cnt    Score   Error  Units
-PatriciaBenchmarkAddExistingValue.addPatriciaTrie          10000  avgt    5  108,823 ? 2,308  ns/op
-PatriciaBenchmarkAddExistingValue.addPatriciaTrieSet       10000  avgt    5  139,719 ? 2,609  ns/op
+    Benchmark                                             (sizeFill)  Mode  Cnt    Score   Error  Units
+    PatriciaBenchmarkAddExistingValue.addPatriciaTrie          10000  avgt   10  132,648 ? 1,718  ns/op
+    PatriciaBenchmarkAddExistingValue.addPatriciaTrieSet       10000  avgt   10  141,382 ? 2,160  ns/op
  */
 @State(Scope.Benchmark)
 @Fork(value = 2)
-@Warmup(iterations = 7, time = 2)
-@Measurement(iterations = 5, time = 2)
+@Warmup(iterations = 7)
+@Measurement(iterations = 5)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class PatriciaBenchmarkAddExistingValue {
@@ -42,7 +42,7 @@ public class PatriciaBenchmarkAddExistingValue {
         ACAB
         Until reaches sizeFill elements
     */
-    @Param({"10000"})
+    @Param({"100000"})
     int sizeFill;
 
     // Move constant at benchmark level to prevent constant folding
@@ -115,6 +115,7 @@ public class PatriciaBenchmarkAddExistingValue {
                 .warmupIterations(7)
                 .mode(Mode.AverageTime)
                 .timeUnit(TimeUnit.NANOSECONDS)
+              //  .jvmArgs("-XX:+UnlockDiagnosticVMOptions","-XX:+PrintInlining")
                 .build();
 
         new Runner(opt).run();

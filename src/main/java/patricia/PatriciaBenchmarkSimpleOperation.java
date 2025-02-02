@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /*
-Benchmark                                             (size)  Mode  Cnt        Score       Error  Units
+Benchmark                                                            (size)  Mode  Cnt        Score       Error  Units
 PatriciaBenchmarkSimpleOperation.containsPatriciaTrie                  1000  avgt    5       48,596 ?     1,230  ns/op
 PatriciaBenchmarkSimpleOperation.containsPatriciaTrie                 10000  avgt    5       51,476 ?     0,824  ns/op
 PatriciaBenchmarkSimpleOperation.containsPatriciaTrie                100000  avgt    5       51,834 ?     0,413  ns/op
@@ -91,8 +91,8 @@ PatriciaBenchmarkSimpleOperation.tailSetPatriciaTrieSet              100000  avg
  */
 @State(Scope.Benchmark)
 @Fork(value = 1)
-@Warmup(iterations = 7, time = 2)
-@Measurement(iterations = 5, time = 2)
+@Warmup(iterations = 7)
+@Measurement(iterations = 5)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class PatriciaBenchmarkSimpleOperation {

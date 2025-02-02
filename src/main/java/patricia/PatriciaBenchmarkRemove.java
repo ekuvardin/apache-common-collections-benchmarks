@@ -30,9 +30,33 @@ public class PatriciaBenchmarkRemove {
     PatriciaTrieSet patriciaTrieSet = new PatriciaTrieSet();
     String[] array;
 
+    /*
+    Initial PatriciaTrie and PatriciaTrieSet size
+    It starts with values
+    A
+    AC
+    ACA
+    ACB
+    ACC
+    ....
+    ACAA
+    ACAB
+    Until reaches sizeFill elements
+   */
     @Param({"100000"})
     int sizeFill;
 
+    /* Then fill elements before each iteration with values
+        It starts with values
+        DE
+        DEA
+        DEB
+        DEC
+        ....
+        DEAA
+        DEAB
+        Until reaches sizeTryToAdd elements
+    */
     @Param({"100000"})
     int sizeTryToRemove;
 
