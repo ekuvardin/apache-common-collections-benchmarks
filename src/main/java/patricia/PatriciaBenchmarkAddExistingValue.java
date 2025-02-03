@@ -115,7 +115,8 @@ public class PatriciaBenchmarkAddExistingValue {
                 .warmupIterations(7)
                 .mode(Mode.AverageTime)
                 .timeUnit(TimeUnit.NANOSECONDS)
-              //  .jvmArgs("-XX:+UnlockDiagnosticVMOptions","-XX:+PrintInlining")
+              //  .jvmArgs("-XX:+EliminateAllocations")
+                //.jvmArgs("-XX:+UnlockDiagnosticVMOptions","-XX:+PrintInlining")
                 .build();
 
         new Runner(opt).run();

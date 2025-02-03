@@ -9,5 +9,5 @@ To build run
 To run test from console run
 'mvn clean package'
 
-Run tests:
-java -jar .\target\benchmark.jar PatriciaBenchmarkAddExistingValue
+Run tests(For example):
+java -jar .\target\benchmark.jar PatriciaBenchmarkAddExistingValue -i 5 -wi 7

@@ -141,7 +141,17 @@ public class PatriciaBenchmarkAddNewValue {
     }
 
     public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder().include(PatriciaBenchmarkAddNewValue.class.getSimpleName()).forks(1).warmupTime(TimeValue.seconds(2)).measurementTime(TimeValue.seconds(2)).measurementIterations(5).warmupIterations(7).mode(Mode.AverageTime).timeUnit(TimeUnit.NANOSECONDS).jvmArgs("-server").build();
+        Options opt = new OptionsBuilder()
+                .include(PatriciaBenchmarkAddNewValue.class.getSimpleName())
+                .forks(1)
+                .warmupTime(TimeValue.seconds(2))
+                .measurementTime(TimeValue.seconds(2))
+                .measurementIterations(5)
+                .warmupIterations(7)
+                .mode(Mode.AverageTime)
+                .timeUnit(TimeUnit.NANOSECONDS)
+                .jvmArgs("-server")
+                .build();
 
         new Runner(opt).run();
     }

@@ -33,13 +33,6 @@
             <version>${jmh.version}</version>
             <scope>provided</scope>
         </dependency>
-       <!-- <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-            <version>4.5.0-M4-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/commons-collections4-4.5.0-M4-SNAPSHOT.jar</systemPath>
-        </dependency>-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
@@ -62,6 +55,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- The line below disables annotation processing: -->
+                    <compilerArgument>-proc:full</compilerArgument>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -90,7 +87,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -99,12 +96,6 @@
                         </goals>
                         <configuration>
                             <finalName>benchmark</finalName>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.openjdk.jmh.Main</mainClass>
-                                </transformer>
-                            </transformers>
                             <relocations>
                                 <relocation>
                                     <pattern>org.apache.commons.collections4</pattern>
@@ -114,6 +105,12 @@
                                     </includes>
                                 </relocation>
                             </relocations>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.openjdk.jmh.Main</mainClass>
+                                </transformer>
+                            </transformers>
                             <filters>
                                 <filter>
                                     <!--
