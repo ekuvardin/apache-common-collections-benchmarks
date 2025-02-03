@@ -1,13 +1,12 @@
-Before
-in lib put built jar 'commons-collections4-4.5.0-M4-SNAPSHOT.jar' if it not exists
+Building
+-------------
+In lib folder put built jar 'commons-collections4-4.5.0-M4-SNAPSHOT.jar' if it not exists
 
-Building:
+run
+`mvn clean install`
 
-To build run 
-'mvn clean install'
-
-To run test from console run
-'mvn clean package'
-
-Run tests(For example):
+Run test from console
+-------------
+1. `mvn clean package`
+2. For example:
 java -jar .\target\benchmark.jar PatriciaBenchmarkAddExistingValue -i 5 -wi 7
